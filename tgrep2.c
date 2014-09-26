@@ -451,7 +451,13 @@ void buildSentence(Sentence S, FILE *file) {
   if (S->numTrees) returnSentence(S);
 
   fread(&trees, 1, sizeof(unsigned short), file);
+
+#ifdef LITTLE_END
   S->numTrees = ntohs(trees);
+#else
+  S->numTrees = trees;
+#endif
+
   if (S->maxTrees < S->numTrees) {
     S->maxTrees = S->numTrees;
     S->tree = smartRealloc(S->tree, S->maxTrees * sizeof(Tree), MEM_SENTENCE);
@@ -481,7 +487,11 @@ void buildSentence(Sentence S, FILE *file) {
     memcpy((char *) (&v), p, sizeof(int));
     p += sizeof(int);
     /* w = ntohl(*(((int *) p)++)); */
+#ifdef LITTLE_END
     w = ntohl(v);
+#else
+    w = v;
+#endif
     if (w < 0 || w >= NumWords) 
       fatalError("Word %d out of range in sentence %d", w, SentenceNum);
 
@@ -489,7 +499,11 @@ void buildSentence(Sentence S, FILE *file) {
     if (ManyKids) {
       memcpy((char *) (&k), p, sizeof(short));
       p += sizeof(short);
+#ifdef LITTLE_END
       kids = ntohs(k);
+#else
+      kids = k;
+#endif
     } else kids = *(p++);
 
     T->numKids = kids;
